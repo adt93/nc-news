@@ -3,9 +3,21 @@ const request = require("supertest");
 const db = require("../db/connection");
 const seed = require("../db/seeds/seed");
 const testData = require("../db/data/test-data/index");
+const endpointsDoc = require("../endpoints.json");
 
 beforeEach(() => seed(testData));
 afterAll(() => db.end());
+
+describe("/api", () => {
+  test("GET: 200 - responds with an object describing all endpoints available", () => {
+    return request(app)
+      .get("/api")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body).toEqual(endpointsDoc);
+      });
+  });
+});
 
 describe("api/topics", () => {
   test("GET: 200 - get request should respond with status 200", () => {
@@ -17,6 +29,14 @@ describe("api/topics", () => {
       .expect(200)
       .then(({ body }) => {
         const { topics } = body;
+        expect(topics).toHaveLength(3);
+        expect(topics).toBeInstanceOf(Array);
+        topics.forEach((topic) => {
+          expect(topic).toMatchObject({
+            slug: expect.any(String),
+            description: expect.any(String),
+          });
+        });
       });
   });
 });
