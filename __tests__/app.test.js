@@ -18,6 +18,20 @@ describe("/api", () => {
       });
   });
 });
+describe("GET /api/articles/:article_id", () => {
+  test("status: 200", () => {
+    return request(app).get("/api/articles/1").expect(200);
+  });
+});
+test("status: 200 and responds with an object", () => {
+  return request(app)
+    .get("/api/articles/1")
+    .expect(200)
+    .then((response) => {
+      const result = response.body;
+      expect(typeof result).toBe("object");
+    });
+});
 
 describe("api/topics", () => {
   test("GET: 200 - get request should respond with status 200", () => {
