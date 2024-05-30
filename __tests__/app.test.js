@@ -18,19 +18,64 @@ describe("/api", () => {
       });
   });
 });
-describe("GET /api/articles/:article_id", () => {
-  test("status: 200", () => {
-    return request(app).get("/api/articles/1").expect(200);
+describe("/api/articles/1", () => {
+  test("GET: 200: - should return an article by its id", () => {
+    return request(app)
+      .get("/api/articles/1")
+      .expect(200)
+      .then((res) => {
+        const article = res.body.article;
+        expect(article).toMatchObject({
+          author: expect.any(String),
+          title: expect.any(String),
+          article_id: expect.any(Number),
+          body: expect.any(String),
+          topic: expect.any(String),
+          created_at: expect.any(String),
+          votes: expect.any(Number),
+          article_img_url: expect.any(String),
+        });
+      });
+  });
+  test("400: ERROR - responds with the error if the data type for id is incorrect", () => {
+    return request(app)
+      .get("/api/articles/nonsense")
+      .expect(400)
+      .then((res) => {
+        expect(res.body.msg).toBe("Bad Request");
+      });
+  });
+  test("404: ERROR - responds with the Bad Request", () => {
+    return request(app)
+      .get("/api/articles/9999")
+      .expect(404)
+      .then((res) => {
+        expect(res.body.msg).toBe("Article Not Found");
+      });
   });
 });
-test("status: 200 and responds with an object", () => {
-  return request(app)
-    .get("/api/articles/1")
-    .expect(200)
-    .then((response) => {
-      const result = response.body;
-      expect(typeof result).toBe("object");
-    });
+
+describe("/api/articles", () => {
+  test("GET: 200 -  should respond with an articles array of article objects, each of which should have the relevant properties", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.articles.length).toBe(13);
+        body.articles.forEach((article) => {
+          expect(article).toMatchObject({
+            author: expect.any(String),
+            title: expect.any(String),
+            topic: expect.any(String),
+            article_id: expect.any(Number),
+            created_at: expect.any(String),
+            votes: expect.any(Number),
+            article_img_url: expect.any(String),
+            comment_count: expect.any(String),
+          });
+        });
+      });
+  });
 });
 
 describe("api/topics", () => {
@@ -55,13 +100,13 @@ describe("api/topics", () => {
   });
 });
 
-describe("non existent path", () => {
+describe("responds with error for a non existent path", () => {
   test("GET: 404 - should return an error message when the path is not found", () => {
     return request(app)
       .get("/api/tropics")
       .expect(404)
       .then(({ body }) => {
-        expect(body).toEqual({ msg: "Path not found" });
+        expect(body).toEqual({ msg: "Path Not Found" });
       });
   });
 });
