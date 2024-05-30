@@ -4,6 +4,7 @@ const db = require("../db/connection");
 const seed = require("../db/seeds/seed");
 const testData = require("../db/data/test-data/index");
 const endpointsDoc = require("../endpoints.json");
+const sorted = require("jest-sorted");
 
 beforeEach(() => seed(testData));
 afterAll(() => db.end());
@@ -54,7 +55,6 @@ describe("/api/articles/1", () => {
       });
   });
 });
-
 describe("/api/articles", () => {
   test("GET: 200 -  should respond with an articles array of article objects, each of which should have the relevant properties", () => {
     return request(app)
@@ -77,7 +77,6 @@ describe("/api/articles", () => {
       });
   });
 });
-
 describe("api/topics", () => {
   test("GET: 200 - get request should respond with status 200", () => {
     return request(app).get("/api/topics").expect(200);
@@ -99,9 +98,8 @@ describe("api/topics", () => {
       });
   });
 });
-
 describe("responds with error for a non existent path", () => {
-  test("GET: 404 - should return an error message when the path is not found", () => {
+  test("404 - should return an error message when the path is not found", () => {
     return request(app)
       .get("/api/tropics")
       .expect(404)
@@ -109,4 +107,50 @@ describe("responds with error for a non existent path", () => {
         expect(body).toEqual({ msg: "Path Not Found" });
       });
   });
+});
+describe("/api/articles/:article_id/comments", () => {
+  test("GET: 200 - /api/articles/:article_id/comments should respond with an array of comments for the given article_id, each of which should have the relevant properties", () => {
+    return request(app)
+      .get("/api/articles/3/comments")
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.comments).toHaveLength(2);
+        body.comments.forEach((comment) => {
+          expect(comment).toMatchObject({
+            comment_id: expect.any(Number),
+            votes: expect.any(Number),
+            created_at: expect.any(String),
+            author: expect.any(String),
+            body: expect.any(String),
+            article_id: 3,
+          });
+        });
+      });
+  });
+});
+test("200: articles should be sorted by created_at in descending order by default", () => {
+  return request(app)
+    .get("/api/articles/1/comments")
+    .expect(200)
+    .then(({ body }) => {
+      expect(body.comments).toBeSortedBy("created_at", {
+        descending: true,
+      });
+    });
+});
+test("404: will respond with a 404 when the path is not found", () => {
+  return request(app)
+    .get("/api/articles/1/cromments")
+    .expect(404)
+    .then(({ body }) => {
+      expect(body.msg).toBe("Path Not Found");
+    });
+});
+test("400: will respond with a 400 when the article_id is invalid", () => {
+  return request(app)
+    .get("/api/articles/99999/comments")
+    .expect(400)
+    .then(({ body }) => {
+      expect(body.msg).toBe("Bad Request");
+    });
 });

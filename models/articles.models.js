@@ -17,7 +17,7 @@ exports.getArticleById = (article_id) => {
       } else return article.rows[0];
     });
 };
-exports.SelectAllArticles = () => {
+exports.selectAllArticles = () => {
   return db
     .query(
       `SELECT
@@ -36,5 +36,24 @@ exports.SelectAllArticles = () => {
     )
     .then((res) => {
       return res.rows;
+    });
+};
+exports.selectCommentsByArticleId = (article_id) => {
+  return db
+    .query(
+      `SELECT * FROM comments 
+    WHERE article_id = $1 
+    ORDER BY created_at DESC`,
+      [article_id]
+    )
+    .then(({ rows }) => {
+      if (rows.length > 0) {
+        return rows;
+      } else {
+        return Promise.reject({
+          status: 400,
+          msg: "Bad Request",
+        });
+      }
     });
 };
