@@ -57,3 +57,43 @@ exports.selectCommentsByArticleId = (article_id) => {
       }
     });
 };
+exports.postComment = (article_id, username, body) => {
+  if (!username || !body) {
+    return Promise.reject({
+      status: 400,
+      msg: "Missing Required Fields",
+    });
+  }
+  return db
+    .query(
+      `INSERT INTO comments (article_id, author, body, votes)
+      VALUES ($1, $2, $3, DEFAULT)
+      RETURNING *`,
+      [article_id, username, body]
+    )
+    .then((res) => {
+      return res.rows[0];
+    });
+};
+exports.checkUserExists = (username) => {
+  return db
+    .query("SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)", [username])
+    .then((result) => {
+      return result.rows[0].exists;
+    });
+};
+exports.updateArticleById = (article_id, body) => {
+  return db
+    .query(
+      `
+  UPDATE articles
+  SET votes = votes + $1
+  WHERE article_id = $2
+  RETURNING *
+  `,
+      [body, article_id]
+    )
+    .then(({ rows }) => {
+      return rows[0];
+    });
+};
