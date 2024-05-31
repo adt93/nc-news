@@ -2,6 +2,9 @@ const {
   getArticleById,
   selectAllArticles,
   selectCommentsByArticleId,
+  postComment,
+  checkUserExists,
+  updateArticleById,
 } = require("../models/articles.models");
 
 exports.getArticleById = (req, res, next) => {
@@ -35,4 +38,27 @@ exports.getCommentsByArticleId = (req, res, next) => {
     .catch((err) => {
       next(err);
     });
+};
+exports.postCommentByArticleId = (req, res, next) => {
+  const { article_id } = req.params;
+  const { username, body } = req.body;
+  Promise.all([
+    checkUserExists(username),
+    postComment(article_id, username, body),
+  ])
+    .then((result) => {
+      res.status(201).send({ result: result[1] });
+    })
+    .catch(next);
+};
+exports.patchArticleById = (req, res, next) => {
+  const { article_id } = req.params;
+  const { inc_votes } = req.body;
+  getArticleById(article_id).then(() => {
+    updateArticleById(article_id, inc_votes)
+      .then((article) => {
+        res.status(200).send({ article });
+      })
+  })
+    .catch(next);
 };
