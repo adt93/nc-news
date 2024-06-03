@@ -9,6 +9,7 @@ const {
   getCommentsByArticleId,
   postCommentByArticleId,
   patchArticleById,
+  deleteCommentById,
 } = require("./controllers/articles.controllers.js");
 
 app.use(express.json());
@@ -20,14 +21,18 @@ app.get("/api/articles", getAllArticles);
 app.get("/api/articles/:article_id/comments", getCommentsByArticleId);
 app.post("/api/articles/:article_id/comments", postCommentByArticleId);
 app.patch("/api/articles/:article_id", patchArticleById);
+app.delete("/api/comments/:comment_id", deleteCommentById);
 
 app.all("*", (req, res) => {
   res.status(404).send({ msg: "Path Not Found" });
 });
 app.use((err, req, res, next) => {
-  console.log(err.message, err.stack);
   if (err.code === "22P02" || err.code === "23503") {
-    res.status(400).send({ msg: "Bad Request" });
+    if (err.constraint === "comments_author_fkey") {
+      res.status(404).send({ msg: "User Not Found" });
+    } else {
+      res.status(400).send({ msg: "Bad Request" });
+    }
   } else next(err);
 });
 

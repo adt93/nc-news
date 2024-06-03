@@ -175,7 +175,20 @@ describe("/api/articles/:article_id/comments", () => {
         });
       });
   });
+  test("POST 404: When a username is not found respond with a 404", () => {
+    return request(app)
+      .post("/api/articles/4/comments")
+      .send({
+        username: "adt93",
+        body: "I am sure, and don't call me Shirley.",
+      })
+      .expect(404)
+      .then(({ body }) => {
+        expect(body).toEqual({ msg: "User Not Found" });
+      });
+  });
 });
+
 test("POST 400: responds with a 400 status code and error message if user inputs an invalid article ID", () => {
   const requestBody = {
     username: "lurker",
@@ -240,5 +253,26 @@ test("PATCH: responds with a 400 status code and error message if user inputs an
     .expect(400)
     .then(({ body }) => {
       expect(body.msg).toBe("Bad Request");
+    });
+});
+describe("DELETE /api/comments/:comment_id", () => {
+  test("DELETE 204: will return correct error message and no body when given valid comment id", () => {
+    return request(app).delete("/api/comments/1").expect(204);
+  });
+});
+test("DELETE 400: will return correct error message if given invalid comment id", () => {
+  return request(app)
+    .delete("/api/comments/orange")
+    .expect(400)
+    .then(({ body }) => {
+      expect(body.msg).toBe("Bad Request");
+    });
+});
+test("DELETE 404: will return correct error message if given invalid comment id", () => {
+  return request(app)
+    .delete("/api/comments/9999")
+    .expect(404)
+    .then(({ body }) => {
+      expect(body.msg).toBe("Comment Not Found");
     });
 });

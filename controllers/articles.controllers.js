@@ -5,6 +5,7 @@ const {
   postComment,
   checkUserExists,
   updateArticleById,
+  removeCommentById,
 } = require("../models/articles.models");
 
 exports.getArticleById = (req, res, next) => {
@@ -42,23 +43,32 @@ exports.getCommentsByArticleId = (req, res, next) => {
 exports.postCommentByArticleId = (req, res, next) => {
   const { article_id } = req.params;
   const { username, body } = req.body;
-  Promise.all([
-    checkUserExists(username),
-    postComment(article_id, username, body),
-  ])
+
+  // checkUserExists(username),
+  postComment(article_id, username, body)
     .then((result) => {
-      res.status(201).send({ result: result[1] });
+      res.status(201).send({ result: result });
     })
     .catch(next);
 };
 exports.patchArticleById = (req, res, next) => {
   const { article_id } = req.params;
   const { inc_votes } = req.body;
-  getArticleById(article_id).then(() => {
-    updateArticleById(article_id, inc_votes)
-      .then((article) => {
+  getArticleById(article_id)
+    .then(() => {
+      updateArticleById(article_id, inc_votes).then((article) => {
         res.status(200).send({ article });
-      })
-  })
+      });
+    })
     .catch(next);
+};
+exports.deleteCommentById = (req, res, next) => {
+  const commentId = req.params.comment_id;
+  removeCommentById(commentId)
+    .then((result) => {
+      return res.status(204).send();
+    })
+    .catch((err) => {
+      next(err);
+    });
 };
