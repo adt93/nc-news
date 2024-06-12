@@ -72,6 +72,4 @@ exports.deleteCommentById = (req, res, next) => {
       next(err);
     });
 
-
-    
 };
